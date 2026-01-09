@@ -36,15 +36,26 @@ public class Pessoa {
 	public Pessoa() {}
 	
 	public boolean isNovo() {
-		return this.id == null;
-		
-	}
-
+		return this.id == null;//para criar o cadastro será verificado se é um novo contato ou se é um cadastro já feito e 
+		//deve ser feito a alteração
+	}// se for true significa novo cadastro, se for false significa que é uma edicao
+	//esse metodo está sendo utilizado no html
+	/*
+	 * <form th:action="${pessoa.novo} ? @{/pessoas} : @{/pessoas/{pessoa}(pessoa=${pessoa.id})}" 
+				th:object="${pessoa}" th:method="${contato.novo} ? post : put">
+				
+				<div th:if="${!contato.novo}"><!-- se nao for verdadeiro nao exibe o identificador -->
+					<label>Código: </label>
+					<input th:field="*{id}" readonly="readonly" />
+				</div>
+	 * 
+	 * 
+	 */
 	
 	public boolean jaEntrou() {
-	    return this.horaEntrada != null; 
-	}
-	
+	    return this.horaEntrada != null; // Verifica se a pessoa já tem a horaEntrada salva
+	}//da mesma forma esse metodo irá verificar se a pessoa ja fez cadastro e tem a horaEntrada Salva, se ja tiver quando
+	//editar nao deve alterar a horaEntrada
 	
 	public String getId() {
 		return id;
@@ -90,22 +101,22 @@ public class Pessoa {
 	}
 
 	public String getHoraEntrada() {
-	    if (!jaEntrou()) { 
-	        
+	    if (!jaEntrou()) { // Verifica se horaEntrada é nula, se for, adiciona a horaEntrada
+	        // Obtém a data e hora atual
 	        LocalDateTime entrada = LocalDateTime.now();
-	        
+	        // Formata a data e hora atual como uma string
 	        DateTimeFormatter formatarEntrada = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm:ss");
 	        this.horaEntrada = entrada.format(formatarEntrada);
 	    }
-	    return this.horaEntrada; 
+	    return this.horaEntrada; // Retorna a horaEntrada já cadastrada ou recém cadastrada
 	}
 	 
 	 public String getHoraSaida() {
 	        if (horaSaida != null) {
-	            
+	            // Se a hora de saída foi registrada, retorna ela
 	            return horaSaida;
 	        } else {
-	            
+	            // Se a hora de saída não foi registrada, retorna uma string vazia
 	            return "";
 	        }
 	    }
