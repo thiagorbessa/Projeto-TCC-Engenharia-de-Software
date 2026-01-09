@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width"/>
+<title>Cadastrar entrada</title>
+<link rel="stylesheet" th:href="@{/css/estilo.css}" />
+
+
+</head>
+
+<body>
+	<header>
+		<nav>
+			<ul>
+				<li><a th:href="@{/}"> Entrada e saída </a></li>
+
+				<li><a th:href="@{/pessoas}"> Listar </a></li>
+
+				<li><a th:href="@{/pessoas/novo}"> Novo </a></li>
+
+				
+			</ul>
+		</nav>
+
+	</header>
+
+	<main>
+		<section>
+			<h1>Cadastro de Pessoas</h1>
+		</section>
+
+		<section>
+			<section>
+            <!-- Define a ação do formulário com base na condição se a pessoa é nova ou não -->
+            <form th:action="${pessoa.novo} ? @{/pessoas} : @{/pessoas/{pessoa.id}}"
+                  th:object="${pessoa}" 
+                  method="post">
+                <!-- Define o método do formulário com base na condição se a pessoa é nova ou não -->
+                <input type="hidden" th:if="${!pessoa.novo}" name="_method" value="put" />
+                <!-- Define o objeto do formulário como a pessoa atual -->
+			 <!-- th:method="${pessoa.novo} ? post : put" Define o objeto do formulário como a pessoa atual -->
+			 <!-- Define o método do formulário com base na condição se a pessoa é nova ou não se pessoa.novo o metodo é post , se nao for novo o metodo é put -->
+				<!-- aqui usa um operador ternario que verifica se pessoa.novo é true pessoa.novo é o metodo do java isNovo() na classe Pessoa o thymeleaf identifica o metodo como put ele envia os valores escondidos
+				mais os valores digitados-->
+				<div th:if="${!pessoa.novo}"><!-- se nao for verdadeiro nao exibe o identificador -->
+					<label>Código: </label>
+					<input th:field="*{id}" readonly="readonly" />
+				</div>
+				
+                <div>
+                    <label>Nome: </label> 
+                    <input th:field="*{nome}" />
+                </div>
+                
+                <div>
+                    <label>Telefone: </label> 
+                    <input th:field="*{telefone}"/>
+                </div>
+                
+                <div>
+                    <label>Unidade:</label>
+                    <input th:field="*{unidade}"/>
+                </div>
+                
+                <div>
+                    <label>Setor:</label>
+                    <input th:field="*{setor}"/>
+                </div>
+                
+                <div>
+                    <label>Andar:</label>
+                    <input th:field="*{andar}"/>
+                </div>
+                
+                <div>
+                    <label>Paciente:</label>
+                    <input th:field="*{paciente}"/>
+                </div>
+                
+                
+                <div>
+                    <label for="observacao">Observação:</label>
+                    <textarea th:field="*{observacao}" rows="4" cols="50"></textarea>
+                </div>
+                
+                <div>
+                    <button>Salvar</button>
+                    <button type="button" id="limpar">Limpar</button>
+                </div>
+            </form>
+		</section>
+		<script>
+				const limparButton = document.getElementById('limpar');
+
+				limparButton.addEventListener('click', function() {
+				const form = document.querySelector('form');
+				form.reset();
+				});
+
+
+			</script>
+	</main>
+</body>
+
+</html>

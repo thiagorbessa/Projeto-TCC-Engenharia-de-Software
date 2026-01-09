@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml" 
+    xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width"/>
+    <title>Listar</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}" />
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                <li><a th:href="@{/}"> Entrada e saída </a></li>
+                <li><a th:href="@{/pessoas}"> Listar </a></li>
+                <li><a th:href="@{/pessoas/novo}"> Novo </a></li>
+                
+            </ul>
+        </nav>
+    </header>
+    <main>
+        <section>
+            <h1>Lista Pessoas</h1>
+        </section>
+        <section>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Nome</th>
+                        <th>Telefone</th>
+                        <th>Unidade</th>
+                        <th>Setor</th>
+                        <th>Andar</th>
+                        <th>Paciente</th>
+                        <th>Hora Entrada</th>
+                        <th>Hora Saída</th>
+                        <th>Observação</th>
+                        <th>Editar</th>
+                        <th>Cadastrar Saída</th>
+                        <th>Remover</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:each="pessoa : ${pessoas}"><!-- adiciona pelo thymeleaf pessoas -->
+                        <td th:text="${pessoa.nome}"></td> <!-- usa o fomulario dado no LISTA_PESSOA e adiciona os campos respectivos com esses atributos -->
+                        <td th:text="${pessoa.telefone}"></td><!-- pessoa.telefone equivale a pessoa.getTelefone() -->
+                        <td th:text="${pessoa.unidade}"></td>
+                        <td th:text="${pessoa.setor}"></td>
+                        <td th:text="${pessoa.andar}"></td>
+                        <td th:text="${pessoa.paciente}"></td>
+                        <td th:text="${pessoa.horaEntrada}"></td>
+                        <td th:text="${pessoa.horaSaida}"></td>
+                        <td th:text="${pessoa.observacao}"></td>
+                        <td>
+                            <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
+                        </td>
+                        
+                        <td><a th:href="@{/pessoas/{id}/formularioSaida(id=${pessoa.id})}">Casdastrar Saída </td>
+                        <td>
+                            <form th:action="@{/pessoas/{pessoa}(pessoa=${pessoa.id})}" th:method="delete">
+                                <button type="submit">Remover</button><!-- para usar o delete é ideal colocar ele em um forumlario separado -->
+                            </form>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+</body>
+</html>
