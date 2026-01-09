@@ -18,6 +18,7 @@ public class Pessoa {
     private String horaEntrada;
     private String horaSaida;
     private String observacao;
+	
     
     
     public Pessoa(String id, String nome, String telefone, String unidade, String setor, String andar,
@@ -138,9 +139,9 @@ public class Pessoa {
 	public void setObservacao(String observacao) {
 		this.observacao = observacao;
 	}
-	
 
-    
+
+
     
 
 }
