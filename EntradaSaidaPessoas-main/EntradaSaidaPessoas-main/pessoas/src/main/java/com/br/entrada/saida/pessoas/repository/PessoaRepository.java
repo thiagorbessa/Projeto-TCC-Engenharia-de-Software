@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
     @Query("""
@@ -16,4 +17,8 @@ public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
            OR LOWER(p.telefone) LIKE LOWER(CONCAT('%', :termo, '%'))
     """)
     List<Pessoa> buscarPorTermo(@Param("termo") String termo);
+
+    Optional<Pessoa> findByCpf(String cpf);
+    Optional<Pessoa> findByIdentidade(String identidade);
+    Optional<Pessoa> findByNomeIgnoreCase(String nome);
 }

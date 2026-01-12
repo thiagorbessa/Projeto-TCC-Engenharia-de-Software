@@ -10,9 +10,9 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-
 import java.util.List;
 import java.util.Map;
+import java.util.Optional; // <--- Não esqueça deste import
 import java.util.stream.Collectors;
 
 @Controller
@@ -23,20 +23,15 @@ public class PessoaController {
 	private final RegistroService registroService;
 	private final RegistroRepository registroRepository;
 
-
 	public PessoaController(PessoaRepository pessoaRepository,
-                            RegistroService registroService, RegistroRepository registroRepository) {
+							RegistroService registroService, RegistroRepository registroRepository) {
 		this.pessoaRepository = pessoaRepository;
 		this.registroService = registroService;
-        this.registroRepository = registroRepository;
-    }
-
+		this.registroRepository = registroRepository;
+	}
 
 	@GetMapping
-	public String listar(
-			@RequestParam(required = false) String busca,
-			Model model) {
-
+	public String listar(@RequestParam(required = false) String busca, Model model) {
 		List<Pessoa> pessoas;
 
 		if (busca != null && !busca.isBlank()) {
@@ -46,23 +41,19 @@ public class PessoaController {
 			pessoas = pessoaRepository.findAll();
 		}
 
-		List<Registro> registrosAbertos =
-				registroService.buscarRegistrosAbertos();
+		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
 
-		Map<Long, Registro> registrosAbertosMap =
-				registrosAbertos.stream()
-						.collect(Collectors.toMap(
-								r -> r.getPessoa().getId(),
-								r -> r
-						));
+		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
+				.collect(Collectors.toMap(
+						r -> r.getPessoa().getId(),
+						r -> r
+				));
 
 		model.addAttribute("pessoas", pessoas);
 		model.addAttribute("registrosAbertos", registrosAbertosMap);
 
 		return "listar";
 	}
-
-
 
 	@GetMapping("/novo")
 	public ModelAndView novo() {
@@ -74,19 +65,56 @@ public class PessoaController {
 	@PostMapping
 	public String salvar(@ModelAttribute Pessoa pessoa, Model model) {
 
-		boolean cpfVazio = pessoa.getCpf() == null || pessoa.getCpf().isBlank();
-		boolean identidadeVazia = pessoa.getIdentidade() == null || pessoa.getIdentidade().isBlank();
+		if (pessoa.getCpf() != null) {
+			pessoa.setCpf(pessoa.getCpf().replaceAll("[^\\d]", ""));
+		}
+		if (pessoa.getTelefone() != null) {
+			pessoa.setTelefone(pessoa.getTelefone().replaceAll("[^\\d]", ""));
+		}
 
-		if (cpfVazio && identidadeVazia) {
-			model.addAttribute("erro", "Informe CPF ou Identidade");
+		// 1. Verifica se ambos estão vazios (Regra de negócio: pelo menos um documento é obrigatório)
+		boolean cpfPreenchido = pessoa.getCpf() != null && !pessoa.getCpf().isBlank();
+		boolean rgPreenchido = pessoa.getIdentidade() != null && !pessoa.getIdentidade().isBlank();
+
+		if (!cpfPreenchido && !rgPreenchido) {
+			model.addAttribute("erro", "Informe pelo menos CPF ou Identidade.");
 			model.addAttribute("pessoa", pessoa);
 			return "formulario";
+		}
+
+		// 2. Validação de CPF (Somente se o usuário digitou algo)
+		if (cpfPreenchido) {
+			Optional<Pessoa> existente = pessoaRepository.findByCpf(pessoa.getCpf());
+			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
+				model.addAttribute("erro", "Este CPF já pertence a: " + existente.get().getNome());
+				model.addAttribute("pessoa", pessoa);
+				return "formulario";
+			}
+		}
+
+		// 3. Validação de Identidade/RG (Somente se o usuário digitou algo)
+		if (rgPreenchido) {
+			Optional<Pessoa> existente = pessoaRepository.findByIdentidade(pessoa.getIdentidade());
+			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
+				model.addAttribute("erro", "Esta Identidade já pertence a: " + existente.get().getNome());
+				model.addAttribute("pessoa", pessoa);
+				return "formulario";
+			}
+		}
+
+		// 4. Validação de Nome (Sempre obrigatório)
+		if (pessoa.getNome() != null && !pessoa.getNome().isBlank()) {
+			Optional<Pessoa> existente = pessoaRepository.findByNomeIgnoreCase(pessoa.getNome());
+			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
+				model.addAttribute("erro", "Já existe uma pessoa cadastrada com o nome: " + pessoa.getNome());
+				model.addAttribute("pessoa", pessoa);
+				return "formulario";
+			}
 		}
 
 		pessoaRepository.save(pessoa);
 		return "redirect:/pessoas";
 	}
-
 
 	@GetMapping("/{id}/editar")
 	public ModelAndView editar(@PathVariable Long id) {
@@ -94,7 +122,6 @@ public class PessoaController {
 		mv.addObject("pessoa", pessoaRepository.findById(id).orElseThrow());
 		return mv;
 	}
-
 
 	@DeleteMapping("/{id}")
 	public String remover(@PathVariable Long id) {
@@ -104,12 +131,10 @@ public class PessoaController {
 
 	@GetMapping("/{id}/historico")
 	public String historico(@PathVariable Long id, Model model) {
-
 		Pessoa pessoa = pessoaRepository.findById(id)
 				.orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
 
-		List<Registro> registros =
-				registroRepository.findByPessoaIdOrderByHoraEntradaDesc(id);
+		List<Registro> registros = registroRepository.findByPessoaIdOrderByHoraEntradaDesc(id);
 
 		model.addAttribute("pessoa", pessoa);
 		model.addAttribute("registros", registros);
@@ -118,10 +143,7 @@ public class PessoaController {
 	}
 
 	@GetMapping("/buscar")
-	public String buscar(
-			@RequestParam(required = false) String termo,
-			Model model) {
-
+	public String buscar(@RequestParam(required = false) String termo, Model model) {
 		List<Pessoa> pessoas;
 		if (termo == null || termo.isBlank()) {
 			pessoas = pessoaRepository.findAll();
@@ -131,19 +153,11 @@ public class PessoaController {
 		model.addAttribute("pessoas", pessoas);
 		model.addAttribute("busca", termo);
 
-
 		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
 		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
 				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
 		model.addAttribute("registrosAbertos", registrosAbertosMap);
 
-
 		return "listar :: tabela";
 	}
-
-
-
-
-
-
 }
