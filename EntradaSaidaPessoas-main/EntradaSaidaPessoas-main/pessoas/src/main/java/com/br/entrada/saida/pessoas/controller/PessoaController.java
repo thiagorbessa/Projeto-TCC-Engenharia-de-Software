@@ -134,7 +134,7 @@ public class PessoaController {
 			// É um cadastro novo, não tem histórico ainda
 			pessoaRepository.save(pessoa);
 		}
-		
+
 		return "redirect:/pessoas";
 	}
 

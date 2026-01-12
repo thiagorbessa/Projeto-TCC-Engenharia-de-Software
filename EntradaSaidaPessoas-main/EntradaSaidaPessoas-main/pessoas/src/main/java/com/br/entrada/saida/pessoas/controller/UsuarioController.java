@@ -39,27 +39,50 @@ public class UsuarioController {
 
     @PostMapping
     public String salvar(Usuario usuario, Authentication auth) {
-        // 1. Limpa o CPF
+        // 1. Limpeza de CPF
         if (usuario.getCpf() != null) {
             usuario.setCpf(usuario.getCpf().replaceAll("[^\\d]", ""));
         }
 
-        // 2. Verifica as permissões de quem está logado
+        // 2. Identifica quem está logado (SISTEMA ou GERAL)
         boolean isGeral = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GERAL"));
 
-        // 3. Regra de Negócio para Perfil:
-        if (isGeral) {
-            // Se for GERAL, ele pode criar qualquer perfil (o que vier do formulário)
-            // Não fazemos nada, deixamos o valor que veio do th:field="*{perfil}"
-        } else {
-            // Se for SISTEMA ou outro, força para USER
-            usuario.setPerfil("ROLE_USER");
-        }
+        if (usuario.getId() != null) {
+            // --- LÓGICA DE EDIÇÃO ---
+            Usuario usuarioBanco = usuarioRepository.findById(usuario.getId())
+                    .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
-        // 4. Criptografia e persistência
-        usuario.setSenha(encoder.encode(usuario.getSenha()));
-        usuarioRepository.save(usuario);
+            // Atualiza campos básicos
+            usuarioBanco.setNomeCompleto(usuario.getNomeCompleto());
+            usuarioBanco.setCpf(usuario.getCpf());
+
+            // Atualiza Perfil (Somente se quem está logado for GERAL ou SISTEMA)
+            // Isso evita que um usuário comum "se promova" via requisição manual
+            if (isGeral || auth.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_SISTEMA"))) {
+                usuarioBanco.setPerfil(usuario.getPerfil());
+            }
+
+            // Atualiza Senha apenas se algo foi digitado no campo
+            if (usuario.getSenha() != null && !usuario.getSenha().isBlank()) {
+                usuarioBanco.setSenha(encoder.encode(usuario.getSenha()));
+            }
+            // Se a senha veio vazia, o usuarioBanco mantém a senha antiga que já estava nele
+
+            usuarioRepository.save(usuarioBanco);
+
+        } else {
+            // --- LÓGICA DE NOVO CADASTRO ---
+
+            // Se não for GERAL, força o novo usuário a ser sempre ROLE_USER
+            if (!isGeral) {
+                usuario.setPerfil("ROLE_USER");
+            }
+
+            // Senha é obrigatória no novo cadastro
+            usuario.setSenha(encoder.encode(usuario.getSenha()));
+            usuarioRepository.save(usuario);
+        }
 
         return "redirect:/usuarios";
     }
