@@ -39,24 +39,28 @@ public class UsuarioController {
 
     @PostMapping
     public String salvar(Usuario usuario, Authentication auth) {
-        // Limpa o CPF (remove pontos e traços) antes de salvar
+        // 1. Limpa o CPF
         if (usuario.getCpf() != null) {
             usuario.setCpf(usuario.getCpf().replaceAll("[^\\d]", ""));
         }
 
-        // Verifica o perfil de quem está cadastrando
+        // 2. Verifica as permissões de quem está logado
         boolean isGeral = auth.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GERAL"));
 
-        // Regra: Se não for GERAL (ou seja, é SISTEMA), o novo cadastro é forçado para USER
-        if (!isGeral) {
+        // 3. Regra de Negócio para Perfil:
+        if (isGeral) {
+            // Se for GERAL, ele pode criar qualquer perfil (o que vier do formulário)
+            // Não fazemos nada, deixamos o valor que veio do th:field="*{perfil}"
+        } else {
+            // Se for SISTEMA ou outro, força para USER
             usuario.setPerfil("ROLE_USER");
         }
 
-        // Criptografa a senha antes de salvar no banco
+        // 4. Criptografia e persistência
         usuario.setSenha(encoder.encode(usuario.getSenha()));
-
         usuarioRepository.save(usuario);
+
         return "redirect:/usuarios";
     }
 

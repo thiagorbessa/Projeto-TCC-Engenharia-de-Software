@@ -12,7 +12,7 @@
 <header>
 	<nav>
 		<ul>
-			<li><a th:href="@{/}"> Entrada e saída </a></li>
+			<li><a th:href="@{/}"> Entrada e Saída </a></li>
 
 			<li sec:authorize="isAuthenticated()">
 				<a th:href="@{/pessoas}"> Listar </a>
@@ -55,6 +55,24 @@
 				<button type="submit" style="margin-top: 15px; width: 100%">Entrar</button>
 			</form>
 		</div>
+		<script>
+			const cpfInput = document.getElementById('cpfLogin');
+			const loginForm = document.getElementById('loginForm');
+
+			// Aplica a máscara visual enquanto ele digita
+			cpfInput.addEventListener('input', e => {
+				let value = e.target.value.replace(/\D/g, '');
+				value = value.replace(/(\d{3})(\d)/, '$1.$2');
+				value = value.replace(/(\d{3})(\d)/, '$1.$2');
+				value = value.replace(/(\d{3})(\d{1,2})$/, '$1-$2');
+				e.target.value = value;
+			});
+
+			// ANTES de enviar, removemos os pontos e traços
+			loginForm.addEventListener('submit', () => {
+				cpfInput.value = cpfInput.value.replace(/\D/g, '');
+			});
+		</script>
 
 		<div sec:authorize="isAuthenticated()" style="text-align: center; margin-top: 20px;">
 			<p>Olá, <span sec:authentication="name">Usuário</span>! Você está logado.</p>

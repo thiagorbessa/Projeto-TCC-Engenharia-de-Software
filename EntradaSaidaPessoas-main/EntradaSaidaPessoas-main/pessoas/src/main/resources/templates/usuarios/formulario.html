@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width"/>
-    <title>Cadastrar entrada</title>
+    <title>Cadastro de Usuário</title>
     <link rel="stylesheet" th:href="@{/css/estilo.css}" />
 </head>
 
@@ -12,9 +12,9 @@
 <header>
     <nav>
         <ul>
-            <li><a th:href="@{/}"> Entrada e Saída </a></li>
-            <li><a th:href="@{/pessoas}"> Listar </a></li>
-            <li><a th:href="@{/pessoas/novo}"> Novo </a></li>
+            <li><a th:href="@{/}"> Entrada e saída </a></li>
+            <li><a th:href="@{/pessoas}"> Listar Pessoas </a></li>
+            <li><a th:href="@{/usuarios}"> Listar Usuários </a></li>
             <li sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
                 <a th:href="@{/usuarios}"> Cadastro de Usuários </a>
             </li>
@@ -30,7 +30,7 @@
 
 <main>
     <section>
-        <h1>Cadastro de Pessoas</h1>
+        <h1 th:text="${usuario.id == null ? 'Cadastro de Usuário' : 'Edição de Usuário'}"></h1>
     </section>
 
     <section>
@@ -42,62 +42,47 @@
             <strong id="js-erro-msg"></strong>
         </div>
 
-        <form th:action="@{/pessoas}" th:object="${pessoa}" method="post" id="pessoaForm">
+        <form th:action="@{/usuarios}" th:object="${usuario}" method="post" id="usuarioForm">
 
             <input type="hidden" th:field="*{id}" />
 
-            <div th:if="${!pessoa.novo}">
+            <div th:if="${usuario.id != null}">
                 <label>Código: </label>
-                <input th:field="*{id}" readonly="readonly" />
+                <input th:field="*{id}" readonly="readonly" style="background-color: #eee;" />
             </div>
 
             <div>
-                <label>CPF:</label>
-                <input th:field="*{cpf}" id="cpf" placeholder="000.000.000-00" maxlength="14"/>
+                <label>Nome Completo: </label>
+                <input th:field="*{nomeCompleto}" required placeholder="Digite o nome do operador" />
             </div>
 
             <div>
-                <label>Identidade:</label>
-                <input th:field="*{identidade}"/>
+                <label>CPF (Login):</label>
+                <input th:field="*{cpf}" id="cpf" placeholder="000.000.000-00" maxlength="14" required/>
             </div>
 
             <div>
-                <label>Nome: </label>
-                <input th:field="*{nome}" required />
+                <label>Senha:</label>
+                <input type="password" th:field="*{senha}" id="senha"
+                       th:required="${usuario.id == null}"
+                       placeholder="Digite a senha de acesso"/>
+                <small th:if="${usuario.id != null}" style="display: block; color: #666; margin-top: 5px;">
+                    (Deixe em branco para manter a senha atual)
+                </small>
             </div>
 
-            <div>
-                <label>Telefone: </label>
-                <input th:field="*{telefone}" id="telefone" placeholder="(00) 00000-0000"/>
+            <div th:if="${podeEscolherPerfil}">
+                <label>Nível de Acesso:</label>
+                <select th:field="*{perfil}">
+                    <option value="ROLE_USER">Usuário Comum</option>
+                    <option value="ROLE_SISTEMA">Administrador do Sistema</option>
+                </select>
             </div>
 
-            <div>
-                <label>Unidade:</label>
-                <input th:field="*{unidade}" required />
-            </div>
+            <input type="hidden" th:if="${!podeEscolherPerfil}" name="perfil" value="ROLE_USER" />
 
-            <div>
-                <label>Setor:</label>
-                <input th:field="*{setor}" required />
-            </div>
-
-            <div>
-                <label>Andar:</label>
-                <input th:field="*{andar}" required />
-            </div>
-
-            <div>
-                <label>Paciente:</label>
-                <input th:field="*{paciente}" required />
-            </div>
-
-            <div>
-                <label for="observacao">Observação:</label>
-                <textarea th:field="*{observacao}" rows="4" cols="50"></textarea>
-            </div>
-
-            <div>
-                <button type="submit">Salvar</button>
+            <div style="margin-top: 20px;">
+                <button type="submit">Salvar Usuário</button>
                 <button type="button" id="limpar">Limpar</button>
             </div>
         </form>
@@ -105,8 +90,7 @@
 
     <script>
         const cpfInput = document.getElementById('cpf');
-        const telInput = document.getElementById('telefone');
-        const form = document.getElementById('pessoaForm');
+        const form = document.getElementById('usuarioForm');
         const jsErroDiv = document.getElementById('js-erro');
         const jsErroMsg = document.getElementById('js-erro-msg');
 
@@ -119,15 +103,7 @@
             e.target.value = value;
         });
 
-        // --- MÁSCARA DE TELEFONE (Extra) ---
-        telInput.addEventListener('input', e => {
-            let value = e.target.value.replace(/\D/g, '');
-            value = value.replace(/^(\d{2})(\d)/g, '($1) $2');
-            value = value.replace(/(\d)(\d{4})$/, '$1-$2');
-            e.target.value = value;
-        });
-
-        // --- VALIDAÇÃO DE CPF REAL ---
+        // --- VALIDAÇÃO DE CPF ---
         function validarCPF(cpf) {
             cpf = cpf.replace(/[^\d]+/g, '');
             if (cpf == '' || cpf.length != 11 || /^(\d)\1{10}$/.test(cpf)) return false;
@@ -144,25 +120,21 @@
             return true;
         }
 
-        // --- INTERCEPTAR ENVIO DO FORMULÁRIO ---
         form.addEventListener('submit', function(e) {
             const cpfValue = cpfInput.value;
-
-            // Só valida se o CPF estiver preenchido (já que RG é opcional)
             if (cpfValue.length > 0) {
                 if (!validarCPF(cpfValue)) {
-                    e.preventDefault(); // Impede o envio
-                    jsErroMsg.textContent = "O CPF digitado é inválido. Por favor, confira os números.";
+                    e.preventDefault();
+                    jsErroMsg.textContent = "CPF inválido. Verifique os números.";
                     jsErroDiv.style.display = 'block';
                     cpfInput.focus();
-                    return;
                 }
             }
         });
 
         // Botão Limpar
         document.getElementById('limpar').addEventListener('click', function() {
-            window.location.href = '/pessoas/novo';
+            window.location.href = '/usuarios/novo';
         });
     </script>
 </main>
