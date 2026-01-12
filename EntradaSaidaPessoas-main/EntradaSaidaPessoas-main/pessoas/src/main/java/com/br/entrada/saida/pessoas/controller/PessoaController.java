@@ -33,14 +33,22 @@ public class PessoaController {
 
 
 	@GetMapping
-	public String listar(Model model) {
+	public String listar(
+			@RequestParam(required = false) String busca,
+			Model model) {
 
-		List<Pessoa> pessoas = pessoaRepository.findAll();
+		List<Pessoa> pessoas;
+
+		if (busca != null && !busca.isBlank()) {
+			pessoas = pessoaRepository.buscarPorTermo(busca);
+			model.addAttribute("busca", busca);
+		} else {
+			pessoas = pessoaRepository.findAll();
+		}
 
 		List<Registro> registrosAbertos =
 				registroService.buscarRegistrosAbertos();
 
-		// pessoaId -> registro aberto
 		Map<Long, Registro> registrosAbertosMap =
 				registrosAbertos.stream()
 						.collect(Collectors.toMap(
@@ -53,6 +61,7 @@ public class PessoaController {
 
 		return "listar";
 	}
+
 
 
 	@GetMapping("/novo")
@@ -107,6 +116,34 @@ public class PessoaController {
 
 		return "historico";
 	}
+
+	@GetMapping("/buscar")
+	public String buscar(
+			@RequestParam(required = false) String termo,
+			Model model) {
+
+		List<Pessoa> pessoas;
+		if (termo == null || termo.isBlank()) {
+			pessoas = pessoaRepository.findAll();
+		} else {
+			pessoas = pessoaRepository.buscarPorTermo(termo);
+		}
+		model.addAttribute("pessoas", pessoas);
+		model.addAttribute("busca", termo);
+
+
+		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
+		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
+				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
+		model.addAttribute("registrosAbertos", registrosAbertosMap);
+
+
+		return "listar :: tabela";
+	}
+
+
+
+
 
 
 }

@@ -108,3 +108,38 @@ main section table tbody tr td form button:hover {
 	background-color: #e6adb7;
 	cursor: pointer;		
 }
+.busca-container {
+	display: flex;
+	justify-content: center;
+	margin: 20px 0 30px 0;
+}
+
+/* Agrupa input + limpar */
+.busca-wrapper {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
+
+/* Input */
+#busca {
+	width: 450px;
+	max-width: 90%;
+	padding: 12px 16px;
+	font-size: 16px;
+	border-radius: 8px;
+	border: 1px solid #ccc;
+	outline: none;
+}
+
+/* Link limpar */
+#limpar-busca {
+	font-size: 14px;
+	color: #6a3df0;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+#limpar-busca:hover {
+	text-decoration: underline;
+}

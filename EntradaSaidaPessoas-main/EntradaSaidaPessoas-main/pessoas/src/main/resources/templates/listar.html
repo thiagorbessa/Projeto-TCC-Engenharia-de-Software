@@ -23,6 +23,21 @@
 </header>
 
 <main>
+    <section>
+
+        <section class="busca-container">
+            <div class="busca-wrapper">
+                <input type="text"
+                       id="busca"
+                       placeholder="Buscar por nome, CPF, RG ou telefone">
+
+                <a href="#" id="limpar-busca">Limpar</a>
+            </div>
+        </section>
+
+        </form>
+    </section>
+
 
     <section>
         <h1>Lista de Pessoas</h1>
@@ -47,10 +62,12 @@
             </tr>
             </thead>
 
-            <tbody>
-            <tr th:each="pessoa : ${pessoas}">
+            <tbody id="tabela-pessoas" th:fragment="tabela">
+            <tr th:each="pessoa : ${pessoas}"
+                th:with="registroAberto=${registrosAbertos[pessoa.id]}">
 
-                <td
+
+            <td
                         th:text="
     ${#strings.isEmpty(pessoa.cpf)
         ? (#strings.isEmpty(pessoa.identidade)
@@ -78,8 +95,8 @@
                 <!-- AÇÃO: Entrada ou Saída -->
                 <td>
 
-                    <!-- SE NÃO TEM REGISTRO ABERTO → MOSTRA ENTRADA -->
-                    <div th:if="${registrosAbertos[pessoa.id] == null}">
+                    <!-- SE NÃO TEM REGISTRO ABERTO -->
+                    <div th:if="${registroAberto == null}">
                         <form th:action="@{/registros/entrada/{id}(id=${pessoa.id})}"
                               method="post"
                               onsubmit="return confirm('Confirmar entrada?');">
@@ -87,9 +104,9 @@
                         </form>
                     </div>
 
-                    <!-- SE TEM REGISTRO ABERTO → MOSTRA SAÍDA -->
-                    <div th:if="${registrosAbertos[pessoa.id] != null}">
-                        <form th:action="@{/registros/saida/{id}(id=${registrosAbertos[pessoa.id].id})}"
+                    <!-- SE TEM REGISTRO ABERTO -->
+                    <div th:if="${registroAberto != null}">
+                        <form th:action="@{/registros/saida/{id}(id=${registroAberto.id})}"
                               method="post"
                               onsubmit="return confirm('Confirmar saída?');">
                             <button type="submit">Registrar Saída</button>
@@ -97,6 +114,7 @@
                     </div>
 
                 </td>
+
 
 
                 <td>
@@ -126,4 +144,24 @@
 
 </main>
 </body>
+<script>
+    const input = document.getElementById("busca");
+    const tabela = document.getElementById("tabela-pessoas");
+
+    let timeout;
+
+    input.addEventListener("keyup", () => {
+        clearTimeout(timeout);
+
+        timeout = setTimeout(() => {
+            fetch(`/pessoas/buscar?termo=${encodeURIComponent(input.value)}`)
+                .then(r => r.text())
+                .then(html => tabela.innerHTML = html);
+        }, 300);
+    });
+</script>
+
+
 </html>
+
+
