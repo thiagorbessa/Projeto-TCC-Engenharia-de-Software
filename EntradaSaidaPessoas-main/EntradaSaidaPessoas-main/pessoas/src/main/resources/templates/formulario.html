@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml" 
+<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml"
 	xmlns:th="http://www.thymeleaf.org">
 <head>
 	<meta charset="UTF-8">
@@ -20,7 +20,7 @@
 
 				<li><a th:href="@{/pessoas/novo}"> Novo </a></li>
 
-				
+
 			</ul>
 		</nav>
 
@@ -33,52 +33,68 @@
 
 		<section>
 			<section>
-                <form th:action="${pessoa.novo} ? @{/pessoas} : @{/pessoas/{id}(id=${pessoa.id})}"
+                <div th:if="${erro}" style="color: red; margin-bottom: 10px;">
+                    <strong th:text="${erro}"></strong>
+                </div>
+
+                <form th:action="@{/pessoas}"
                       th:object="${pessoa}"
                       method="post">
 
+                    <input type="hidden" th:field="*{id}" />
 
-                <div th:if="${!pessoa.novo}"><!-- se nao for verdadeiro nao exibe o identificador -->
-					<label>Código: </label>
-					<input th:field="*{id}" readonly="readonly" />
-				</div>
-				
-                <div>
-                    <label>Nome: </label> 
+                    <div th:if="${!pessoa.novo}">
+                        <label>Código: </label>
+                        <input th:field="*{id}" readonly="readonly" />
+                    </div>
+
+                    <div>
+                        <label>CPF:</label>
+                        <input th:field="*{cpf}" placeholder="Somente números"/>
+                    </div>
+
+                    <div>
+                        <label>Identidade:</label>
+                        <input th:field="*{identidade}"/>
+                    </div>
+
+
+                    <div>
+                    <label>Nome: </label>
                     <input th:field="*{nome}" />
                 </div>
-                
+
                 <div>
-                    <label>Telefone: </label> 
+                    <label>Telefone: </label>
                     <input th:field="*{telefone}"/>
                 </div>
-                
+
                 <div>
                     <label>Unidade:</label>
                     <input th:field="*{unidade}"/>
                 </div>
-                
+
                 <div>
                     <label>Setor:</label>
                     <input th:field="*{setor}"/>
                 </div>
-                
+
                 <div>
                     <label>Andar:</label>
                     <input th:field="*{andar}"/>
                 </div>
-                
+
                 <div>
                     <label>Paciente:</label>
                     <input th:field="*{paciente}"/>
                 </div>
-                
-                
+
+
                 <div>
                     <label for="observacao">Observação:</label>
                     <textarea th:field="*{observacao}" rows="4" cols="50"></textarea>
                 </div>
-                
+
                 <div>
                     <button>Salvar</button>
                     <button type="button" id="limpar">Limpar</button>

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-br"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width"/>
+  <title>Histórico</title>
+  <link rel="stylesheet" th:href="@{/css/estilo.css}"/>
+</head>
+
+<body>
+
+<header>
+  <nav>
+    <ul>
+      <li><a th:href="@{/}">Entrada e saída</a></li>
+      <li><a th:href="@{/pessoas}">Listar</a></li>
+      <li><a th:href="@{/pessoas/novo}">Novo</a></li>
+    </ul>
+  </nav>
+</header>
+
+<main>
+
+  <section>
+    <h2
+            th:text="
+    'Histórico de ' + pessoa.nome +
+    ' (' +
+    (#strings.isEmpty(pessoa.cpf)
+        ? (#strings.isEmpty(pessoa.identidade)
+            ? 'documento não informado'
+            : pessoa.identidade)
+        : pessoa.cpf)
+    + ')'
+  ">
+    </h2>
+
+  </section>
+
+  <section>
+
+    <table>
+      <thead>
+      <tr>
+        <th>Entrada</th>
+        <th>Saída</th>
+        <th>Unidade</th>
+        <th>Setor</th>
+        <th>Andar</th>
+        <th>Paciente</th>
+      </tr>
+      </thead>
+
+      <tbody>
+      <tr th:each="r : ${registros}">
+        <td th:text="${#temporals.format(r.horaEntrada, 'dd/MM/yyyy HH:mm')}"></td>
+
+        <td th:text="${r.horaSaida == null
+                    ? 'Em aberto'
+                    : #temporals.format(r.horaSaida, 'dd/MM/yyyy HH:mm')}">
+        </td>
+
+        <td th:text="${r.unidade}"></td>
+        <td th:text="${r.setor}"></td>
+        <td th:text="${r.andar}"></td>
+        <td th:text="${r.paciente}"></td>
+      </tr>
+      </tbody>
+    </table>
+
+    <div style="margin-top: 20px;">
+      <a th:href="@{/pessoas}">⬅ Voltar</a>
+    </div>
+
+  </section>
+
+</main>
+
+</body>
+</html>

@@ -1,71 +1,129 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml" 
-    xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width"/>
-    <title>Listar</title>
-    <link rel="stylesheet" th:href="@{/css/estilo.css}" />
+    <title>Listar Pessoas</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}"/>
 </head>
+
 <body>
-    <header>
-        <nav>
-            <ul>
-                <li><a th:href="@{/}"> Entrada e saída </a></li>
-                <li><a th:href="@{/pessoas}"> Listar </a></li>
-                <li><a th:href="@{/pessoas/novo}"> Novo </a></li>
-                
-            </ul>
-        </nav>
-    </header>
-    <main>
-        <section>
-            <h1>Lista Pessoas</h1>
-        </section>
-        <section>
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nome</th>
-                        <th>Telefone</th>
-                        <th>Unidade</th>
-                        <th>Setor</th>
-                        <th>Andar</th>
-                        <th>Paciente</th>
-                        <th>Hora Entrada</th>
-                        <th>Hora Saída</th>
-                        <th>Observação</th>
-                        <th>Editar</th>
-                        <th>Cadastrar Saída</th>
-                        <th>Remover</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="pessoa : ${pessoas}"><!-- adiciona pelo thymeleaf pessoas -->
-                        <td th:text="${pessoa.nome}"></td> <!-- usa o fomulario dado no LISTA_PESSOA e adiciona os campos respectivos com esses atributos -->
-                        <td th:text="${pessoa.telefone}"></td><!-- pessoa.telefone equivale a pessoa.getTelefone() -->
-                        <td th:text="${pessoa.unidade}"></td>
-                        <td th:text="${pessoa.setor}"></td>
-                        <td th:text="${pessoa.andar}"></td>
-                        <td th:text="${pessoa.paciente}"></td>
-                        <td th:text="${pessoa.horaEntrada}"></td>
-                        <td th:text="${pessoa.horaSaida}"></td>
-                        <td th:text="${pessoa.observacao}"></td>
-                        <td>
-                            <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
-                        </td>
-                        
-                        <td><a th:href="@{/pessoas/{id}/formularioSaida(id=${pessoa.id})}">Casdastrar Saída </td>
-                        <td>
-                            <form th:action="@{/pessoas/{id}(id=${pessoa.id})}" method="post">
-                                <input type="hidden" name="_method" value="delete"/>
-                                <button type="submit">Remover</button>
-                            </form>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-        </section>
-    </main>
+
+<header>
+    <nav>
+        <ul>
+            <li><a th:href="@{/}">Entrada e Saída</a></li>
+            <li><a th:href="@{/pessoas}">Listar</a></li>
+            <li><a th:href="@{/pessoas/novo}">Novo</a></li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+
+    <section>
+        <h1>Lista de Pessoas</h1>
+    </section>
+
+    <section>
+        <table>
+            <thead>
+            <tr>
+                <th>Documento</th>
+                <th>Nome</th>
+                <th>Telefone</th>
+                <th>Unidade</th>
+                <th>Setor</th>
+                <th>Andar</th>
+                <th>Paciente</th>
+                <th>Hora Entrada</th>
+                <th>Hora Saída</th>
+                <th>Ação</th>
+                <th>Editar</th>
+                <th>Remover</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="pessoa : ${pessoas}">
+
+                <td
+                        th:text="
+    ${#strings.isEmpty(pessoa.cpf)
+        ? (#strings.isEmpty(pessoa.identidade)
+            ? 'não preenchido'
+            : pessoa.identidade)
+        : pessoa.cpf}">
+                </td>
+                <td th:text="${pessoa.nome}"></td>
+                <td th:text="${pessoa.telefone}"></td>
+                <td th:text="${pessoa.unidade}"></td>
+                <td th:text="${pessoa.setor}"></td>
+                <td th:text="${pessoa.andar}"></td>
+                <td th:text="${pessoa.paciente}"></td>
+
+                <!-- Último registro -->
+                <td th:text="${pessoa.registros.isEmpty() ? '-'
+    : #temporals.format(pessoa.registros[0].horaEntrada, 'dd/MM/yyyy HH:mm')}">
+                </td>
+
+                <td th:text="${pessoa.registros.isEmpty() || pessoa.registros[0].horaSaida == null ? '-'
+    : #temporals.format(pessoa.registros[0].horaSaida, 'dd/MM/yyyy HH:mm')}">
+                </td>
+
+
+                <!-- AÇÃO: Entrada ou Saída -->
+                <td>
+
+                    <!-- SE NÃO TEM REGISTRO ABERTO → MOSTRA ENTRADA -->
+                    <div th:if="${registrosAbertos[pessoa.id] == null}">
+                        <form th:action="@{/registros/entrada/{id}(id=${pessoa.id})}"
+                              method="post"
+                              onsubmit="return confirm('Confirmar entrada?');">
+                            <button type="submit">Registrar Entrada</button>
+                        </form>
+                    </div>
+
+                    <!-- SE TEM REGISTRO ABERTO → MOSTRA SAÍDA -->
+                    <div th:if="${registrosAbertos[pessoa.id] != null}">
+                        <form th:action="@{/registros/saida/{id}(id=${registrosAbertos[pessoa.id].id})}"
+                              method="post"
+                              onsubmit="return confirm('Confirmar saída?');">
+                            <button type="submit">Registrar Saída</button>
+                        </form>
+                    </div>
+
+                </td>
+
+
+                <td>
+                    <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
+                </td>
+
+                <td>
+                    <form th:action="@{/pessoas/{id}(id=${pessoa.id})}"
+                          th:method="delete"
+                          onsubmit="return confirm('Tem certeza que deseja remover esta pessoa?')">
+                        <button type="submit">Remover</button>
+                    </form>
+
+                </td>
+
+                <td>
+                    <a th:href="@{/pessoas/{id}/historico(id=${pessoa.id})}">
+                        Histórico
+                    </a>
+                </td>
+
+
+            </tr>
+            </tbody>
+        </table>
+    </section>
+
+</main>
 </body>
 </html>
