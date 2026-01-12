@@ -8,6 +8,42 @@
     <meta name="viewport" content="width=device-width"/>
     <title>Listar Pessoas</title>
     <link rel="stylesheet" th:href="@{/css/estilo.css}"/>
+    <style>
+        /* Centralizar campo de busca e botão */
+        .busca-container {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .busca-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        #busca {
+            width: 400px;
+            padding: 8px 12px;
+            font-size: 14px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        #limpar-busca {
+            align-self: center;
+            text-decoration: none;
+            color: purple;
+            cursor: pointer;
+        }
+
+        .ver-mais {
+            display: block;
+            color: blue;
+            font-size: 12px;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,21 +59,15 @@
 </header>
 
 <main>
-    <section>
+    <section class="busca-container">
+        <div class="busca-wrapper">
+            <input type="text"
+                   id="busca"
+                   placeholder="Buscar por nome, CPF, RG ou telefone">
 
-        <section class="busca-container">
-            <div class="busca-wrapper">
-                <input type="text"
-                       id="busca"
-                       placeholder="Buscar por nome, CPF, RG ou telefone">
-
-                <a href="#" id="limpar-busca">Limpar</a>
-            </div>
-        </section>
-
-        </form>
+            <a href="#" id="limpar-busca">Limpar</a>
+        </div>
     </section>
-
 
     <section>
         <h1>Lista de Pessoas</h1>
@@ -57,6 +87,8 @@
                 <th>Hora Entrada</th>
                 <th>Hora Saída</th>
                 <th>Ação</th>
+                <th>Observação</th>
+                <th>Histórico Pessoa</th>
                 <th>Editar</th>
                 <th>Remover</th>
             </tr>
@@ -66,15 +98,7 @@
             <tr th:each="pessoa : ${pessoas}"
                 th:with="registroAberto=${registrosAbertos[pessoa.id]}">
 
-
-            <td
-                        th:text="
-    ${#strings.isEmpty(pessoa.cpf)
-        ? (#strings.isEmpty(pessoa.identidade)
-            ? 'não preenchido'
-            : pessoa.identidade)
-        : pessoa.cpf}">
-                </td>
+                <td th:text="${#strings.isEmpty(pessoa.cpf) ? (#strings.isEmpty(pessoa.identidade) ? 'não preenchido' : pessoa.identidade) : pessoa.cpf}"></td>
                 <td th:text="${pessoa.nome}"></td>
                 <td th:text="${pessoa.telefone}"></td>
                 <td th:text="${pessoa.unidade}"></td>
@@ -82,86 +106,122 @@
                 <td th:text="${pessoa.andar}"></td>
                 <td th:text="${pessoa.paciente}"></td>
 
-                <!-- Último registro -->
-                <td th:text="${pessoa.registros.isEmpty() ? '-'
-    : #temporals.format(pessoa.registros[0].horaEntrada, 'dd/MM/yyyy HH:mm')}">
-                </td>
+                <td th:text="${pessoa.registros.isEmpty() ? '-' : #temporals.format(pessoa.registros[0].horaEntrada, 'dd/MM/yyyy HH:mm')}"></td>
+                <td th:text="${pessoa.registros.isEmpty() || pessoa.registros[0].horaSaida == null ? '-' : #temporals.format(pessoa.registros[0].horaSaida, 'dd/MM/yyyy HH:mm')}"></td>
 
-                <td th:text="${pessoa.registros.isEmpty() || pessoa.registros[0].horaSaida == null ? '-'
-    : #temporals.format(pessoa.registros[0].horaSaida, 'dd/MM/yyyy HH:mm')}">
-                </td>
-
-
-                <!-- AÇÃO: Entrada ou Saída -->
                 <td>
-
-                    <!-- SE NÃO TEM REGISTRO ABERTO -->
                     <div th:if="${registroAberto == null}">
-                        <form th:action="@{/registros/entrada/{id}(id=${pessoa.id})}"
-                              method="post"
+                        <form th:action="@{/registros/entrada/{id}(id=${pessoa.id})}" method="post"
                               onsubmit="return confirm('Confirmar entrada?');">
                             <button type="submit">Registrar Entrada</button>
                         </form>
                     </div>
 
-                    <!-- SE TEM REGISTRO ABERTO -->
                     <div th:if="${registroAberto != null}">
-                        <form th:action="@{/registros/saida/{id}(id=${registroAberto.id})}"
-                              method="post"
+                        <form th:action="@{/registros/saida/{id}(id=${registroAberto.id})}" method="post"
                               onsubmit="return confirm('Confirmar saída?');">
                             <button type="submit">Registrar Saída</button>
                         </form>
                     </div>
-
                 </td>
 
+                <!-- Observação -->
+                <td>
+                    <span class="obs-resumo" th:text="${#strings.length(pessoa.observacao) > 50 ? pessoa.observacao.substring(0,50) + '...' : pessoa.observacao}"></span>
+                    <span class="obs-completa" th:text="${pessoa.observacao}" style="display:none;"></span>
 
+                    <a href="#"
+                       th:if="${!#strings.isEmpty(pessoa.observacao) and #strings.length(pessoa.observacao) > 50}"
+                       class="ver-mais">ver mais</a>
+                </td>
+
+                <td>
+                    <a th:href="@{/pessoas/{id}/historico(id=${pessoa.id})}">Histórico</a>
+                </td>
 
                 <td>
                     <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
                 </td>
 
                 <td>
-                    <form th:action="@{/pessoas/{id}(id=${pessoa.id})}"
-                          th:method="delete"
+                    <form th:action="@{/pessoas/{id}(id=${pessoa.id})}" th:method="delete"
                           onsubmit="return confirm('Tem certeza que deseja remover esta pessoa?')">
                         <button type="submit">Remover</button>
                     </form>
-
                 </td>
-
-                <td>
-                    <a th:href="@{/pessoas/{id}/historico(id=${pessoa.id})}">
-                        Histórico
-                    </a>
-                </td>
-
-
             </tr>
             </tbody>
         </table>
     </section>
-
 </main>
-</body>
+
 <script>
     const input = document.getElementById("busca");
     const tabela = document.getElementById("tabela-pessoas");
 
     let timeout;
 
+    // Função genérica para atualizar a tabela
+    function atualizarTabela(url) {
+        fetch(url)
+            .then(r => r.text())
+            .then(html => {
+                const tempDiv = document.createElement('div');
+                // TRUQUE: Envolvemos o HTML em uma table para o navegador não remover o tbody
+                tempDiv.innerHTML = '<table>' + html + '</table>';
+
+                // Agora buscamos o tbody dentro da nossa tabela temporária
+                const novoTbody = tempDiv.querySelector('tbody');
+
+                if (novoTbody) {
+                    tabela.innerHTML = novoTbody.innerHTML;
+                }
+            })
+            .catch(error => console.error('Erro na busca:', error));
+    }
+
+    // Evento de Digitação (Busca)
     input.addEventListener("keyup", () => {
         clearTimeout(timeout);
-
         timeout = setTimeout(() => {
-            fetch(`/pessoas/buscar?termo=${encodeURIComponent(input.value)}`)
-                .then(r => r.text())
-                .then(html => tabela.innerHTML = html);
+            const termo = encodeURIComponent(input.value);
+            // Chama a URL de busca. Se o termo for vazio, o backend já trata (traz todos).
+            atualizarTabela(`/pessoas/buscar?termo=${termo}`);
         }, 300);
+    });
+
+    // Botão Limpar
+    document.getElementById("limpar-busca").addEventListener("click", function(e) {
+        e.preventDefault();
+        input.value = "";
+
+        // Reutiliza a rota de busca com termo vazio para trazer a lista completa (fragmento)
+        // em vez de carregar a página inteira novamente.
+        atualizarTabela(`/pessoas/buscar?termo=`);
+    });
+
+    // Ver mais / ver menos (Mantido igual)
+    document.addEventListener("click", function (e) {
+        if (!e.target.classList.contains("ver-mais")) return;
+
+        e.preventDefault();
+
+        const td = e.target.closest("td");
+        const resumo = td.querySelector(".obs-resumo");
+        const completa = td.querySelector(".obs-completa");
+
+        const expandido = completa.style.display === "block";
+
+        if (expandido) {
+            completa.style.display = "none";
+            resumo.style.display = "inline";
+            e.target.textContent = "ver mais";
+        } else {
+            completa.style.display = "block";
+            resumo.style.display = "none";
+            e.target.textContent = "ver menos";
+        }
     });
 </script>
 
-
 </html>
-
-

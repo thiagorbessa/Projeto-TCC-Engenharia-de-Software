@@ -143,3 +143,23 @@ main section table tbody tr td form button:hover {
 #limpar-busca:hover {
 	text-decoration: underline;
 }
+.ver-mais {
+	margin-left: 6px;
+	font-size: 13px;
+	color: #6a3df0;
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.ver-mais:hover {
+	text-decoration: underline;
+}
+
+.obs-completa {
+	display: block;
+	margin-top: 6px;
+	font-size: 14px;
+	line-height: 1.4;
+	color: #333;
+}
+
