@@ -112,7 +112,29 @@ public class PessoaController {
 			}
 		}
 
-		pessoaRepository.save(pessoa);
+		if (pessoa.getId() != null) {
+			// É uma edição! Buscamos a pessoa original do banco de dados
+			Pessoa pessoaBanco = pessoaRepository.findById(pessoa.getId())
+					.orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
+
+			// Atualizamos apenas os dados cadastrais da "pessoaBanco"
+			pessoaBanco.setNome(pessoa.getNome());
+			pessoaBanco.setCpf(pessoa.getCpf());
+			pessoaBanco.setIdentidade(pessoa.getIdentidade());
+			pessoaBanco.setTelefone(pessoa.getTelefone());
+			pessoaBanco.setUnidade(pessoa.getUnidade());
+			pessoaBanco.setSetor(pessoa.getSetor());
+			pessoaBanco.setAndar(pessoa.getAndar());
+			pessoaBanco.setPaciente(pessoa.getPaciente());
+			pessoaBanco.setObservacao(pessoa.getObservacao());
+
+			// Agora salvamos a 'pessoaBanco', que ainda possui a lista de registros vinculada
+			pessoaRepository.save(pessoaBanco);
+		} else {
+			// É um cadastro novo, não tem histórico ainda
+			pessoaRepository.save(pessoa);
+		}
+		
 		return "redirect:/pessoas";
 	}
 
