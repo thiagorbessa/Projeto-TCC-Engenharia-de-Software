@@ -25,23 +25,21 @@
 <main>
 
   <section>
-    <h2
-            th:text="
-    'Histórico de ' + pessoa.nome +
-    ' (' +
-    (#strings.isEmpty(pessoa.cpf)
-        ? (#strings.isEmpty(pessoa.identidade)
-            ? 'documento não informado'
-            : pessoa.identidade)
-        : pessoa.cpf)
-    + ')'
-  ">
+    <h2 th:with="
+    doc=${!#strings.isEmpty(pessoa.cpf) and !#strings.isEmpty(pessoa.identidade)
+            ? 'CPF: ' + pessoa.cpf + ' | RG: ' + pessoa.identidade
+            : (!#strings.isEmpty(pessoa.cpf)
+                ? 'CPF: ' + pessoa.cpf
+                : (!#strings.isEmpty(pessoa.identidade)
+                    ? 'RG: ' + pessoa.identidade
+                    : 'documento não informado'))}"
+        th:text="'Histórico de ' + ${pessoa.nome} + ' (' + ${doc} + ')'">
     </h2>
+
 
   </section>
 
   <section>
-
     <table>
       <thead>
       <tr>
@@ -59,8 +57,8 @@
         <td th:text="${#temporals.format(r.horaEntrada, 'dd/MM/yyyy HH:mm')}"></td>
 
         <td th:text="${r.horaSaida == null
-                    ? 'Em aberto'
-                    : #temporals.format(r.horaSaida, 'dd/MM/yyyy HH:mm')}">
+                ? 'Em aberto'
+                : #temporals.format(r.horaSaida, 'dd/MM/yyyy HH:mm')}">
         </td>
 
         <td th:text="${r.unidade}"></td>
@@ -74,7 +72,6 @@
     <div style="margin-top: 20px;">
       <a th:href="@{/pessoas}">⬅ Voltar</a>
     </div>
-
   </section>
 
 </main>

@@ -96,7 +96,9 @@ public class PessoaController {
 	@GetMapping("/{id}/historico")
 	public String historico(@PathVariable Long id, Model model) {
 
-		Pessoa pessoa = pessoaRepository.findById(id).orElseThrow();
+		Pessoa pessoa = pessoaRepository.findById(id)
+				.orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
+
 		List<Registro> registros =
 				registroRepository.findByPessoaIdOrderByHoraEntradaDesc(id);
 
@@ -105,5 +107,6 @@ public class PessoaController {
 
 		return "historico";
 	}
+
 
 }
