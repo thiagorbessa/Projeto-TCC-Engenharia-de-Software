@@ -1,34 +1,65 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml" 
-	xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" xmlns="http://www.w3.org/1999/xhtml"
+	  xmlns:th="http://www.thymeleaf.org"
+	  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width"/>
-<title>Entrada e saida de pessoas</title>
-<link rel="stylesheet" th:href="@{/css/estilo.css}" />
-
+	<title>Entrada e saída de pessoas</title>
+	<link rel="stylesheet" th:href="@{/css/estilo.css}" />
 </head>
-
 <body>
-	<header>
-		<nav>
-			<ul>
-				<li><a th:href="@{/}"> Entrada e saída </a></li>
+<header>
+	<nav>
+		<ul>
+			<li><a th:href="@{/}"> Entrada e saída </a></li>
 
-				<li><a th:href="@{/pessoas}"> Listar </a></li>
+			<li sec:authorize="isAuthenticated()">
+				<a th:href="@{/pessoas}"> Listar </a>
+			</li>
+			<li sec:authorize="isAuthenticated()">
+				<a th:href="@{/pessoas/novo}"> Novo </a>
+			</li>
 
-				<li><a th:href="@{/pessoas/novo}"> Novo </a></li>
+			<li sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
+				<a th:href="@{/usuarios}"> Cadastro de Usuários </a>
+			</li>
 
-			</ul>
-		</nav>
-		
-	</header>
+			<li sec:authorize="isAuthenticated()">
+				<form th:action="@{/logout}" method="post" style="display:inline">
+					<button type="submit" style="background:none; border:none; color:white; cursor:pointer;">Sair</button>
+				</form>
+			</li>
+		</ul>
+	</nav>
+</header>
 
-	<main>
-		<section>
-			<h1>Seja bem vindo(a)!</h1>
-		</section>
-	</main>
+<main>
+	<section>
+		<h1>Seja bem vindo(a)!</h1>
+
+		<div sec:authorize="isAnonymous()" style="max-width: 300px; margin: 20px auto; padding: 20px; border: 1px solid #ccc; border-radius: 8px;">
+			<h3>Login</h3>
+			<div th:if="${param.error}" style="color: red; margin-bottom: 10px;">
+				Usuário ou senha inválidos.
+			</div>
+			<form th:action="@{/login}" method="post">
+				<div>
+					<label>CPF (Login):</label>
+					<input type="text" name="username" required style="width: 100%"/>
+				</div>
+				<div style="margin-top: 10px;">
+					<label>Senha:</label>
+					<input type="password" name="password" required style="width: 100%"/>
+				</div>
+				<button type="submit" style="margin-top: 15px; width: 100%">Entrar</button>
+			</form>
+		</div>
+
+		<div sec:authorize="isAuthenticated()" style="text-align: center; margin-top: 20px;">
+			<p>Olá, <span sec:authentication="name">Usuário</span>! Você está logado.</p>
+		</div>
+	</section>
+</main>
 </body>
-
 </html>

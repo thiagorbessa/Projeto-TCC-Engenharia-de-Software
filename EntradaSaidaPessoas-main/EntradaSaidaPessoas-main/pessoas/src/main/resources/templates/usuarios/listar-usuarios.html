@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="pt-br"
+      xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width"/>
+    <title>Listar Usuários</title>
+    <link rel="stylesheet" th:href="@{/css/estilo.css}"/>
+    <style>
+        .acoes-topo {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .btn-novo {
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: bold;
+        }
+
+        .btn-novo:hover {
+            background-color: #4cae4c;
+        }
+
+        .badge {
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+            color: white;
+        }
+        .badge-user { background-color: #5bc0de; }
+        .badge-sistema { background-color: #f0ad4e; }
+        .badge-geral { background-color: #d9534f; }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <nav>
+        <ul>
+            <li><a th:href="@{/}">Entrada e Saída</a></li>
+            <li><a th:href="@{/pessoas}">Listar Pessoas</a></li>
+            <li><a th:href="@{/pessoas/novo}">Novo Registro</a></li>
+            <li sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
+                <a th:href="@{/templates/usuarios}">Usuários</a>
+            </li>
+            <li>
+                <form th:action="@{/logout}" method="post" style="display:inline">
+                    <button type="submit" style="background:none; border:none; color:white; cursor:pointer; font-family:inherit; font-size:inherit;">Sair</button>
+                </form>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<main>
+    <section class="acoes-topo">
+        <a th:href="@{/usuarios/novo}" class="btn-novo">Cadastrar Novo Usuário</a>
+    </section>
+
+    <section>
+        <h1>Gestão de Usuários do Sistema</h1>
+    </section>
+
+    <section>
+        <table>
+            <thead>
+            <tr>
+                <th>Nome Completo</th>
+                <th>CPF (Login)</th>
+                <th>Perfil de Acesso</th>
+                <th>Editar</th>
+                <th>Remover</th>
+            </tr>
+            </thead>
+
+            <tbody>
+            <tr th:each="u : ${usuarios}">
+                <td th:text="${u.nomeCompleto}"></td>
+                <td th:text="${u.cpf}"></td>
+                <td>
+                    <span th:if="${u.perfil == 'ROLE_USER'}" class="badge badge-user">Usuário</span>
+                    <span th:if="${u.perfil == 'ROLE_SISTEMA'}" class="badge badge-sistema">Admin Sistema</span>
+                    <span th:if="${u.perfil == 'ROLE_GERAL'}" class="badge badge-geral">Admin Geral</span>
+                </td>
+
+                <td>
+                    <a th:href="@{/usuarios/{id}/editar(id=${u.id})}">Editar</a>
+                </td>
+
+                <td>
+                    <form th:action="@{/usuarios/{id}(id=${u.id})}" th:method="delete"
+                          onsubmit="return confirm('Tem certeza que deseja remover este usuário?')">
+                        <button type="submit">Remover</button>
+                    </form>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </section>
+</main>
+
+</body>
+</html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-br"
       xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org">
+      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
 
 <head>
     <meta charset="UTF-8">
@@ -139,11 +139,11 @@
                     <a th:href="@{/pessoas/{id}/historico(id=${pessoa.id})}">Histórico</a>
                 </td>
 
-                <td>
+                <td sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
                     <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
                 </td>
 
-                <td>
+                <td sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
                     <form th:action="@{/pessoas/{id}(id=${pessoa.id})}" th:method="delete"
                           onsubmit="return confirm('Tem certeza que deseja remover esta pessoa?')">
                         <button type="submit">Remover</button>
