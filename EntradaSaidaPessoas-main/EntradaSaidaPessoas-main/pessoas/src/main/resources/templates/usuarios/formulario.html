@@ -76,6 +76,10 @@
                 <select th:field="*{perfil}">
                     <option value="ROLE_USER">Usuário Comum</option>
                     <option value="ROLE_SISTEMA">Administrador do Sistema</option>
+
+                    <option sec:authorize="hasRole('ROLE_GERAL')" value="ROLE_GERAL">
+                        Administrador Geral
+                    </option>
                 </select>
             </div>
 
