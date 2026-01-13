@@ -98,7 +98,7 @@
                 <th>Ação</th>
                 <th>Observação</th>
                 <th>Histórico Pessoa</th>
-                <th sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">Editar</th>
+                <th>Editar</th>
                 <th sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">Remover</th>
             </tr>
             </thead>
@@ -148,7 +148,7 @@
                     <a th:href="@{/pessoas/{id}/historico(id=${pessoa.id})}">Histórico</a>
                 </td>
 
-                <td sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
+                <td>
                     <a th:href="@{/pessoas/{id}/editar(id=${pessoa.id})}">Editar</a>
                 </td>
 

@@ -2,9 +2,13 @@ package com.br.entrada.saida.pessoas.controller;
 
 import com.br.entrada.saida.pessoas.model.Pessoa;
 import com.br.entrada.saida.pessoas.model.Registro;
+import com.br.entrada.saida.pessoas.model.Usuario;
 import com.br.entrada.saida.pessoas.repository.PessoaRepository;
 import com.br.entrada.saida.pessoas.repository.RegistroRepository;
+import com.br.entrada.saida.pessoas.repository.UsuarioRepository;
 import com.br.entrada.saida.pessoas.service.RegistroService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -12,46 +16,32 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional; // <--- Não esqueça deste import
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/pessoas")
+@RequiredArgsConstructor // Gera construtor para todos os campos 'final'
 public class PessoaController {
 
 	private final PessoaRepository pessoaRepository;
 	private final RegistroService registroService;
 	private final RegistroRepository registroRepository;
-
-	public PessoaController(PessoaRepository pessoaRepository,
-							RegistroService registroService, RegistroRepository registroRepository) {
-		this.pessoaRepository = pessoaRepository;
-		this.registroService = registroService;
-		this.registroRepository = registroRepository;
-	}
+	private final UsuarioRepository usuarioRepository;
 
 	@GetMapping
 	public String listar(@RequestParam(required = false) String busca, Model model) {
-		List<Pessoa> pessoas;
-
-		if (busca != null && !busca.isBlank()) {
-			pessoas = pessoaRepository.buscarPorTermo(busca);
-			model.addAttribute("busca", busca);
-		} else {
-			pessoas = pessoaRepository.findAll();
-		}
+		List<Pessoa> pessoas = (busca != null && !busca.isBlank())
+				? pessoaRepository.buscarPorTermo(busca)
+				: pessoaRepository.findAll();
 
 		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
-
 		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
-				.collect(Collectors.toMap(
-						r -> r.getPessoa().getId(),
-						r -> r
-				));
+				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
 
 		model.addAttribute("pessoas", pessoas);
 		model.addAttribute("registrosAbertos", registrosAbertosMap);
-
+		model.addAttribute("busca", busca);
 		return "listar";
 	}
 
@@ -63,61 +53,27 @@ public class PessoaController {
 	}
 
 	@PostMapping
-	public String salvar(@ModelAttribute Pessoa pessoa, Model model) {
+	public String salvar(@ModelAttribute Pessoa pessoa, Model model, Authentication auth) {
+		// Busca o usuário do sistema que está logado
+		Usuario usuarioLogado = usuarioRepository.findByCpf(auth.getName())
+				.orElseThrow(() -> new RuntimeException("Usuário logado não encontrado"));
 
-		if (pessoa.getCpf() != null) {
-			pessoa.setCpf(pessoa.getCpf().replaceAll("[^\\d]", ""));
-		}
-		if (pessoa.getTelefone() != null) {
-			pessoa.setTelefone(pessoa.getTelefone().replaceAll("[^\\d]", ""));
-		}
+		if (pessoa.getCpf() != null) pessoa.setCpf(pessoa.getCpf().replaceAll("[^\\d]", ""));
+		if (pessoa.getTelefone() != null) pessoa.setTelefone(pessoa.getTelefone().replaceAll("[^\\d]", ""));
 
-		// 1. Verifica se ambos estão vazios (Regra de negócio: pelo menos um documento é obrigatório)
-		boolean cpfPreenchido = pessoa.getCpf() != null && !pessoa.getCpf().isBlank();
-		boolean rgPreenchido = pessoa.getIdentidade() != null && !pessoa.getIdentidade().isBlank();
-
-		if (!cpfPreenchido && !rgPreenchido) {
+		// Validações de Documento
+		if ((pessoa.getCpf() == null || pessoa.getCpf().isBlank()) &&
+				(pessoa.getIdentidade() == null || pessoa.getIdentidade().isBlank())) {
 			model.addAttribute("erro", "Informe pelo menos CPF ou Identidade.");
 			model.addAttribute("pessoa", pessoa);
 			return "formulario";
 		}
 
-		// 2. Validação de CPF (Somente se o usuário digitou algo)
-		if (cpfPreenchido) {
-			Optional<Pessoa> existente = pessoaRepository.findByCpf(pessoa.getCpf());
-			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
-				model.addAttribute("erro", "Este CPF já pertence a: " + existente.get().getNome());
-				model.addAttribute("pessoa", pessoa);
-				return "formulario";
-			}
-		}
-
-		// 3. Validação de Identidade/RG (Somente se o usuário digitou algo)
-		if (rgPreenchido) {
-			Optional<Pessoa> existente = pessoaRepository.findByIdentidade(pessoa.getIdentidade());
-			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
-				model.addAttribute("erro", "Esta Identidade já pertence a: " + existente.get().getNome());
-				model.addAttribute("pessoa", pessoa);
-				return "formulario";
-			}
-		}
-
-		// 4. Validação de Nome (Sempre obrigatório)
-		if (pessoa.getNome() != null && !pessoa.getNome().isBlank()) {
-			Optional<Pessoa> existente = pessoaRepository.findByNomeIgnoreCase(pessoa.getNome());
-			if (existente.isPresent() && (pessoa.getId() == null || !existente.get().getId().equals(pessoa.getId()))) {
-				model.addAttribute("erro", "Já existe uma pessoa cadastrada com o nome: " + pessoa.getNome());
-				model.addAttribute("pessoa", pessoa);
-				return "formulario";
-			}
-		}
-
+		// Lógica de Edição vs Cadastro Novo com Auditoria
 		if (pessoa.getId() != null) {
-			// É uma edição! Buscamos a pessoa original do banco de dados
-			Pessoa pessoaBanco = pessoaRepository.findById(pessoa.getId())
-					.orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
+			Pessoa pessoaBanco = pessoaRepository.findById(pessoa.getId()).orElseThrow();
 
-			// Atualizamos apenas os dados cadastrais da "pessoaBanco"
+			// Atualiza campos cadastrais
 			pessoaBanco.setNome(pessoa.getNome());
 			pessoaBanco.setCpf(pessoa.getCpf());
 			pessoaBanco.setIdentidade(pessoa.getIdentidade());
@@ -128,10 +84,12 @@ public class PessoaController {
 			pessoaBanco.setPaciente(pessoa.getPaciente());
 			pessoaBanco.setObservacao(pessoa.getObservacao());
 
-			// Agora salvamos a 'pessoaBanco', que ainda possui a lista de registros vinculada
+			// Define quem editou por último
+			pessoaBanco.setUsuarioResponsavel(usuarioLogado);
 			pessoaRepository.save(pessoaBanco);
 		} else {
-			// É um cadastro novo, não tem histórico ainda
+			// Define quem está criando o registro
+			pessoa.setUsuarioResponsavel(usuarioLogado);
 			pessoaRepository.save(pessoa);
 		}
 
@@ -153,33 +111,26 @@ public class PessoaController {
 
 	@GetMapping("/{id}/historico")
 	public String historico(@PathVariable Long id, Model model) {
-		Pessoa pessoa = pessoaRepository.findById(id)
-				.orElseThrow(() -> new RuntimeException("Pessoa não encontrada"));
-
+		Pessoa pessoa = pessoaRepository.findById(id).orElseThrow();
 		List<Registro> registros = registroRepository.findByPessoaIdOrderByHoraEntradaDesc(id);
 
 		model.addAttribute("pessoa", pessoa);
 		model.addAttribute("registros", registros);
-
 		return "historico";
 	}
 
 	@GetMapping("/buscar")
 	public String buscar(@RequestParam(required = false) String termo, Model model) {
-		List<Pessoa> pessoas;
-		if (termo == null || termo.isBlank()) {
-			pessoas = pessoaRepository.findAll();
-		} else {
-			pessoas = pessoaRepository.buscarPorTermo(termo);
-		}
-		model.addAttribute("pessoas", pessoas);
-		model.addAttribute("busca", termo);
+		List<Pessoa> pessoas = (termo == null || termo.isBlank())
+				? pessoaRepository.findAll()
+				: pessoaRepository.buscarPorTermo(termo);
 
 		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
 		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
 				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
-		model.addAttribute("registrosAbertos", registrosAbertosMap);
 
+		model.addAttribute("pessoas", pessoas);
+		model.addAttribute("registrosAbertos", registrosAbertosMap);
 		return "listar :: tabela";
 	}
 }

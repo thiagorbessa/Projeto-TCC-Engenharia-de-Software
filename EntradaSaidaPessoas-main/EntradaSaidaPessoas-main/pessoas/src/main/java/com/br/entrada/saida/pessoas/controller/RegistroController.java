@@ -1,18 +1,14 @@
 package com.br.entrada.saida.pessoas.controller;
 
-import com.br.entrada.saida.pessoas.model.Pessoa;
-import com.br.entrada.saida.pessoas.model.Registro;
-import com.br.entrada.saida.pessoas.repository.PessoaRepository;
-import com.br.entrada.saida.pessoas.repository.RegistroRepository;
+import com.br.entrada.saida.pessoas.model.Usuario;
+import com.br.entrada.saida.pessoas.repository.UsuarioRepository;
 import com.br.entrada.saida.pessoas.service.RegistroService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-
-import java.time.LocalDateTime;
 
 @Controller
 @RequestMapping("/registros")
@@ -20,19 +16,27 @@ import java.time.LocalDateTime;
 public class RegistroController {
 
     private final RegistroService registroService;
+    private final UsuarioRepository usuarioRepository;
 
     @PostMapping("/entrada/{pessoaId}")
-    public String registrarEntrada(@PathVariable Long pessoaId) {
-        registroService.registrarEntrada(pessoaId);
+    public String registrarEntrada(@PathVariable Long pessoaId, Authentication auth) {
+        // Captura o operador que está realizando a entrada
+        Usuario operador = usuarioRepository.findByCpf(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
+
+        // Ajuste seu RegistroService para aceitar o Usuario como segundo parâmetro
+        registroService.registrarEntrada(pessoaId, operador);
         return "redirect:/pessoas";
     }
-
 
     @PostMapping("/saida/{registroId}")
-    public String registrarSaida(@PathVariable Long registroId) {
-        registroService.registrarSaida(registroId);
+    public String registrarSaida(@PathVariable Long registroId, Authentication auth) {
+        // Captura o operador que está realizando a saída
+        Usuario operador = usuarioRepository.findByCpf(auth.getName())
+                .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
+
+        // Ajuste seu RegistroService para aceitar o Usuario como segundo parâmetro
+        registroService.registrarSaida(registroId, operador);
         return "redirect:/pessoas";
     }
-
 }
-

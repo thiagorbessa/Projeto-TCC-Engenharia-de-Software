@@ -39,6 +39,11 @@ public class Pessoa {
 	@Column(length = 20)
 	private String identidade;
 
+	// Indica qual usuário do sistema cadastrou ou editou esta pessoa
+	@ManyToOne
+	@JoinColumn(name = "usuario_id")
+	private Usuario usuarioResponsavel;
+
 	@Transient
 	public boolean isNovo() {
 		return id == null;

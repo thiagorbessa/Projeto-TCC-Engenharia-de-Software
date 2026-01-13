@@ -25,8 +25,16 @@ public class Registro {
     private String andar;
     private String paciente;
 
+    // Alterado para nomes de colunas distintos
+    @ManyToOne
+    @JoinColumn(name = "usuario_entrada_id")
+    private Usuario usuarioEntrada; // Quem marcou a entrada
+
+    @ManyToOne
+    @JoinColumn(name = "usuario_saida_id")
+    private Usuario usuarioSaida;   // Quem marcou a saída
+
     @ManyToOne
     @JoinColumn(name = "pessoa_id")
     private Pessoa pessoa;
 }
-

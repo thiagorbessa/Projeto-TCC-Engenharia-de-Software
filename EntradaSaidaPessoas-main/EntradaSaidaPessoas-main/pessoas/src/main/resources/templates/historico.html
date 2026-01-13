@@ -1,13 +1,30 @@
 <!DOCTYPE html>
 <html lang="pt-br"
       xmlns="http://www.w3.org/1999/xhtml"
-      xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.w3.org/1999/xhtml">
+      xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width"/>
-  <title>Histórico</title>
+  <title>Histórico de Visitas</title>
   <link rel="stylesheet" th:href="@{/css/estilo.css}"/>
+  <style>
+    .info-auditoria {
+      font-size: 0.85em;
+      color: #666;
+      margin-bottom: 15px;
+      padding: 10px;
+      background-color: #f9f9f9;
+      border-left: 4px solid #ccc;
+    }
+    .badge-operador {
+      display: block;
+      font-size: 0.8em;
+      color: #555;
+      font-style: italic;
+    }
+  </style>
 </head>
 
 <body>
@@ -45,7 +62,10 @@
         th:text="'Histórico de ' + ${pessoa.nome} + ' (' + ${doc} + ')'">
     </h2>
 
-
+    <div class="info-auditoria" sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
+      <strong>Cadastro/Última edição por:</strong>
+      <span th:text="${pessoa.usuarioResponsavel != null ? pessoa.usuarioResponsavel.nomeCompleto : 'Sistema (Antigo)'}"></span>
+    </div>
   </section>
 
   <section>
@@ -58,28 +78,39 @@
         <th>Setor</th>
         <th>Andar</th>
         <th>Paciente</th>
+        <th sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">Operador Responsável</th>
       </tr>
       </thead>
 
       <tbody>
       <tr th:each="r : ${registros}">
-        <td th:text="${#temporals.format(r.horaEntrada, 'dd/MM/yyyy HH:mm')}"></td>
+        <td>
+          <span th:text="${#temporals.format(r.horaEntrada, 'dd/MM/yyyy HH:mm')}"></span>
+        </td>
 
-        <td th:text="${r.horaSaida == null
-                ? 'Em aberto'
-                : #temporals.format(r.horaSaida, 'dd/MM/yyyy HH:mm')}">
+        <td>
+          <span th:text="${r.horaSaida == null ? 'Em aberto' : #temporals.format(r.horaSaida, 'dd/MM/yyyy HH:mm')}"></span>
         </td>
 
         <td th:text="${r.unidade}"></td>
         <td th:text="${r.setor}"></td>
         <td th:text="${r.andar}"></td>
         <td th:text="${r.paciente}"></td>
+
+        <td sec:authorize="hasAnyRole('SISTEMA', 'GERAL')">
+            <span class="badge-operador">
+                Entrada: <span th:text="${r.usuarioEntrada != null ? r.usuarioEntrada.nomeCompleto : '-'}"></span>
+            </span>
+          <span class="badge-operador" th:if="${r.horaSaida != null}">
+                Saída: <span th:text="${r.usuarioSaida != null ? r.usuarioSaida.nomeCompleto : '-'}"></span>
+            </span>
+        </td>
       </tr>
       </tbody>
     </table>
 
     <div style="margin-top: 20px;">
-      <a th:href="@{/pessoas}">⬅ Voltar</a>
+      <a th:href="@{/pessoas}" class="btn-voltar">⬅ Voltar para a listagem</a>
     </div>
   </section>
 
