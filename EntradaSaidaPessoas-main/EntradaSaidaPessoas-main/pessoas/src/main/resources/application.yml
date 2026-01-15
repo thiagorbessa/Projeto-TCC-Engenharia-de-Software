@@ -19,11 +19,9 @@ spring:
 
   jpa:
     show-sql: true
-    open-in-view: false
+    open-in-view: true
     hibernate:
-      # 'update' cria as tabelas automaticamente na primeira vez
-      # e mantém os dados salvos nas próximas execuções.
-      ddl-auto: create
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
