@@ -1,25 +1,39 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:pessoas
-    username: pessoas2024
-    password:
+    # --- CONFIGURAÇÃO MYSQL (Ativa) ---
+    # Conecta no schema 'entrada_saida_pessoas'
+    url: jdbc:mysql://localhost:3306/entrada_saida_pessoas?useTimezone=true&serverTimezone=UTC
+    username: root
+    password: root  # <--- COLOQUE SUA SENHA AQUI
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+    # --- CONFIGURAÇÃO H2 (Desativada/Comentada) ---
+    # url: jdbc:h2:mem:pessoas
+    # username: pessoas2024
+    # password:
 
   mvc:
     hiddenmethod:
       filter:
         enabled: true
+
   jpa:
     show-sql: true
     open-in-view: false
     hibernate:
-      ddl-auto: create # validate | update | create | create-drop
+      # 'update' cria as tabelas automaticamente na primeira vez
+      # e mantém os dados salvos nas próximas execuções.
+      ddl-auto: update
     properties:
       hibernate:
         format_sql: true
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-      settings:
-        trace: false
-        web-allow-others: false
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  # --- CONFIGURAÇÃO CONSOLE H2 (Desativada) ---
+  # h2:
+  #   console:
+  #     enabled: true
+  #     path: /h2-console
+  #     settings:
+  #       trace: false
+  #       web-allow-others: false
