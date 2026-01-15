@@ -4,7 +4,7 @@ spring:
     # Conecta no schema 'entrada_saida_pessoas'
     url: jdbc:mysql://localhost:3306/entrada_saida_pessoas?useTimezone=true&serverTimezone=UTC
     username: root
-    password: root  # <--- COLOQUE SUA SENHA AQUI
+    password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
     # --- CONFIGURAÇÃO H2 (Desativada/Comentada) ---
@@ -23,11 +23,11 @@ spring:
     hibernate:
       # 'update' cria as tabelas automaticamente na primeira vez
       # e mantém os dados salvos nas próximas execuções.
-      ddl-auto: update
+      ddl-auto: create
     properties:
       hibernate:
         format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
   # --- CONFIGURAÇÃO CONSOLE H2 (Desativada) ---
   # h2:
