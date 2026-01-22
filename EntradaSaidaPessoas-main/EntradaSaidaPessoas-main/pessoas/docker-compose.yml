@@ -1,0 +1,25 @@
+version: '3.8'
+services:
+  db:
+    image: mysql:8.0
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: entrada_saida_pessoas
+      MYSQL_ROOT_PASSWORD: root
+    ports:
+      - "3306:3306"
+
+  app:
+    build: .
+    container_name: spring_app
+    restart: always
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://db:3306/entrada_saida_pessoas?createDatabaseIfNotExist=true&useTimezone=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
