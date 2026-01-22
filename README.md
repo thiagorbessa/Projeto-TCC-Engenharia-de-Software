@@ -15,24 +15,32 @@ Sistema desenvolvido para o Trabalho de Conclusão de Curso em Engenharia de Sof
    `docker-compose up -d --build`
 3. Acesse em: `http://localhost:8080`
 
-## 🌐 Acesso Externo (Apresentação)
-Para gerar o link da internet para a banca:
+## 🏠 Acesso em Rede Local (Sem Internet/ngrok)
+Se o objetivo for rodar o sistema apenas para dispositivos que estão na mesma rede Wi-Fi/Cabo (Intranet), sem expor o sistema para a internet:
+
+1. **Descubra o IP do Servidor:** No computador onde o Docker está rodando, abra o terminal e digite `ipconfig`. Procure pelo "Endereço IPv4" (ex: `192.168.1.15`).
+2. **Acesso por outros dispositivos:** Em qualquer outro computador, celular ou tablet conectado à mesma rede, abra o navegador e digite:
+   `http://[IP_DO_SERVIDOR]:8080`
+   *(Exemplo: http://192.168.1.15:8080)*
+3. **Vantagem:** Este método é mais rápido e seguro para uso interno, pois os dados não saem da rede local da instituição/empresa.
+
+## 🌐 Acesso Externo 
+Caso precise que alguém fora da sua rede local (via Internet) acesse o sistema:
 1. Com o Docker já rodando, abra um novo terminal e digite:
    `ngrok http 8080`
 2. Copie a URL `https://...` gerada no campo *Forwarding*.
 
 ## 🛑 Como Finalizar
-Para encerrar os serviços de forma segura e liberar os recursos (portas e memória) da máquina:
-1. **No ngrok:** Pressione `Ctrl + C` no terminal onde o túnel está aberto.
+Para encerrar os serviços de forma segura e liberar os recursos da máquina:
+1. **No ngrok:** Pressione `Ctrl + C` no terminal do túnel.
 2. **No Docker:** No terminal da pasta do projeto, execute:
    `docker-compose down`
-   *(Este comando para os containers e remove a rede virtual, mantendo os dados salvos nos volumes).*
 
 ## 📊 Monitoramento (Opcional)
-Para visualizar o que está acontecendo no "coração" do sistema (logs do Java) enquanto você navega:
+Para visualizar o processamento em tempo real (logs do Java):
 `docker logs -f spring_app`
 
 ## 👥 Perfis de Acesso
 * **USER:** Operacional. Registro de entrada/saída e cadastro de pessoas.
-* **SISTEMA:** Admin Nível 1. Gerencia usuários operacionais e visualiza auditoria.
-* **GERAL:** Admin Nível 2. Controle total de todos os usuários e configurações.
+* **SISTEMA:** Admin Nível 1. Gerencia usuários operacionais e auditoria básica.
+* **GERAL:** Admin Nível 2. Controle total de usuários e configurações do sistema.
