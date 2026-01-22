@@ -24,7 +24,7 @@ public class RegistroController {
         Usuario operador = usuarioRepository.findByCpf(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
 
-        // Ajuste seu RegistroService para aceitar o Usuario como segundo parâmetro
+
         registroService.registrarEntrada(pessoaId, operador);
         return "redirect:/pessoas";
     }
@@ -35,7 +35,6 @@ public class RegistroController {
         Usuario operador = usuarioRepository.findByCpf(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
 
-        // Ajuste seu RegistroService para aceitar o Usuario como segundo parâmetro
         registroService.registrarSaida(registroId, operador);
         return "redirect:/pessoas";
     }

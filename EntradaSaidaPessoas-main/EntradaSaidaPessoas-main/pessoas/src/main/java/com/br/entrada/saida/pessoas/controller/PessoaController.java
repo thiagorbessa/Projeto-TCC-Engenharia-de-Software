@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/pessoas")
-@RequiredArgsConstructor // Gera construtor para todos os campos 'final'
+@RequiredArgsConstructor
 public class PessoaController {
 
 	private final PessoaRepository pessoaRepository;

@@ -3,10 +3,10 @@ package com.br.entrada.saida.pessoas.controller;
 import com.br.entrada.saida.pessoas.model.Usuario;
 import com.br.entrada.saida.pessoas.repository.UsuarioRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.core.Authentication; // Import necessário
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model; // Import necessário
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -46,7 +46,7 @@ public class UsuarioController {
                 .anyMatch(a -> a.getAuthority().equals("ROLE_GERAL"));
 
         if (usuario.getId() != null) {
-            // --- LÓGICA DE EDIÇÃO ---
+
             Usuario usuarioBanco = usuarioRepository.findById(usuario.getId())
                     .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
 
@@ -69,7 +69,7 @@ public class UsuarioController {
             usuarioRepository.save(usuarioBanco);
 
         } else {
-            // --- LÓGICA DE NOVO CADASTRO ---
+            // ---  NOVO CADASTRO ---
 
             // Se não for GERAL, força o novo usuário a ser sempre ROLE_USER
             if (!isGeral) {
@@ -105,7 +105,7 @@ public class UsuarioController {
         return "usuarios/listar-usuarios";
     }
     // Método para Deletar Usuário
-    @DeleteMapping("/{id}") 
+    @DeleteMapping("/{id}")
     public String excluir(@PathVariable Long id) {
         usuarioRepository.deleteById(id);
         return "redirect:/usuarios";

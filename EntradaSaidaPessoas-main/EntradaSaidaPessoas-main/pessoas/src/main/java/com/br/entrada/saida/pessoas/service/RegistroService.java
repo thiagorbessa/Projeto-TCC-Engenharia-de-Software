@@ -19,10 +19,7 @@ public class RegistroService {
     private final RegistroRepository registroRepository;
     private final PessoaRepository pessoaRepository;
 
-    /**
-     * REGISTRAR ENTRADA
-     * Agora recebe o 'operador' para auditoria.
-     */
+
     @Transactional
     public void registrarEntrada(Long pessoaId, Usuario operador) {
 
@@ -43,7 +40,7 @@ public class RegistroService {
         // AUDITORIA: Quem está realizando a entrada
         registro.setUsuarioEntrada(operador);
 
-        // SNAPSHOT: Salva o estado atual da pessoa no momento da entrada
+        // Salva o estado atual da pessoa no momento da entrada
         // Isso é importante caso os dados da pessoa mudem futuramente.
         registro.setUnidade(pessoa.getUnidade());
         registro.setSetor(pessoa.getSetor());
@@ -53,33 +50,26 @@ public class RegistroService {
         registroRepository.save(registro);
     }
 
-    /**
-     * REGISTRAR SAÍDA
-     * Agora recebe o 'operador' para auditoria.
-     */
+
     @Transactional
     public void registrarSaida(Long registroId, Usuario operador) {
 
         Registro registro = registroRepository.findById(registroId)
                 .orElseThrow(() -> new IllegalArgumentException("Registro de entrada não encontrado"));
 
-        // Regra: Não pode finalizar um registro que já possui hora de saída
+        //  Não pode finalizar um registro que já possui hora de saída
         if (registro.getHoraSaida() != null) {
             throw new IllegalStateException("Este registro já foi finalizado anteriormente.");
         }
 
         registro.setHoraSaida(LocalDateTime.now());
 
-        // AUDITORIA: Quem está realizando a saída (pode ser um operador diferente da entrada)
+        //  Quem está realizando a saída (pode ser um operador diferente da entrada)
         registro.setUsuarioSaida(operador);
 
         registroRepository.save(registro);
     }
 
-    /**
-     * Busca todos os registros que ainda não possuem hora de saída.
-     * Usado para controlar os botões na listagem principal.
-     */
     public List<Registro> buscarRegistrosAbertos() {
         return registroRepository.findByHoraSaidaIsNull();
     }
