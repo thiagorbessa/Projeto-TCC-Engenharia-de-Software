@@ -7,10 +7,7 @@ import org.springframework.security.core.Authentication; // Import necessário
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model; // Import necessário
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -108,7 +105,7 @@ public class UsuarioController {
         return "usuarios/listar-usuarios";
     }
     // Método para Deletar Usuário
-    @PostMapping("/{id}") // O HTML usa th:method="delete", o Spring converte para POST com um parâmetro oculto
+    @DeleteMapping("/{id}") 
     public String excluir(@PathVariable Long id) {
         usuarioRepository.deleteById(id);
         return "redirect:/usuarios";
