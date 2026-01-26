@@ -7,6 +7,7 @@ services:
     environment:
       MYSQL_DATABASE: entrada_saida_pessoas
       MYSQL_ROOT_PASSWORD: root
+      TZ: America/Sao_Paulo
     ports:
       - "3306:3306"
 
@@ -23,3 +24,4 @@ services:
       SPRING_DATASOURCE_USERNAME: root
       SPRING_DATASOURCE_PASSWORD: root
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      TZ: America/Sao_Paulo
