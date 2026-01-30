@@ -16,7 +16,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.UUID; // <--- Importação necessária
 import java.util.stream.Collectors;
 
 @Controller
@@ -36,7 +36,9 @@ public class PessoaController {
 				: pessoaRepository.findAll();
 
 		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
-		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
+
+		// Alterado de Map<Long, Registro> para Map<UUID, Registro>
+		Map<UUID, Registro> registrosAbertosMap = registrosAbertos.stream()
 				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
 
 		model.addAttribute("pessoas", pessoas);
@@ -54,14 +56,12 @@ public class PessoaController {
 
 	@PostMapping
 	public String salvar(@ModelAttribute Pessoa pessoa, Model model, Authentication auth) {
-		// Busca o usuário do sistema que está logado
 		Usuario usuarioLogado = usuarioRepository.findByCpf(auth.getName())
 				.orElseThrow(() -> new RuntimeException("Usuário logado não encontrado"));
 
 		if (pessoa.getCpf() != null) pessoa.setCpf(pessoa.getCpf().replaceAll("[^\\d]", ""));
 		if (pessoa.getTelefone() != null) pessoa.setTelefone(pessoa.getTelefone().replaceAll("[^\\d]", ""));
 
-		// Validações de Documento
 		if ((pessoa.getCpf() == null || pessoa.getCpf().isBlank()) &&
 				(pessoa.getIdentidade() == null || pessoa.getIdentidade().isBlank())) {
 			model.addAttribute("erro", "Informe pelo menos CPF ou Identidade.");
@@ -69,11 +69,9 @@ public class PessoaController {
 			return "formulario";
 		}
 
-		// Lógica de Edição vs Cadastro Novo com Auditoria
 		if (pessoa.getId() != null) {
 			Pessoa pessoaBanco = pessoaRepository.findById(pessoa.getId()).orElseThrow();
 
-			// Atualiza campos cadastrais
 			pessoaBanco.setNome(pessoa.getNome());
 			pessoaBanco.setCpf(pessoa.getCpf());
 			pessoaBanco.setIdentidade(pessoa.getIdentidade());
@@ -84,11 +82,9 @@ public class PessoaController {
 			pessoaBanco.setPaciente(pessoa.getPaciente());
 			pessoaBanco.setObservacao(pessoa.getObservacao());
 
-			// Define quem editou por último
 			pessoaBanco.setUsuarioResponsavel(usuarioLogado);
 			pessoaRepository.save(pessoaBanco);
 		} else {
-			// Define quem está criando o registro
 			pessoa.setUsuarioResponsavel(usuarioLogado);
 			pessoaRepository.save(pessoa);
 		}
@@ -97,20 +93,20 @@ public class PessoaController {
 	}
 
 	@GetMapping("/{id}/editar")
-	public ModelAndView editar(@PathVariable Long id) {
+	public ModelAndView editar(@PathVariable UUID id) { // Alterado para UUID
 		ModelAndView mv = new ModelAndView("formulario");
 		mv.addObject("pessoa", pessoaRepository.findById(id).orElseThrow());
 		return mv;
 	}
 
 	@DeleteMapping("/{id}")
-	public String remover(@PathVariable Long id) {
+	public String remover(@PathVariable UUID id) { // Alterado para UUID
 		pessoaRepository.deleteById(id);
 		return "redirect:/pessoas";
 	}
 
 	@GetMapping("/{id}/historico")
-	public String historico(@PathVariable Long id, Model model) {
+	public String historico(@PathVariable UUID id, Model model) { // Alterado para UUID
 		Pessoa pessoa = pessoaRepository.findById(id).orElseThrow();
 		List<Registro> registros = registroRepository.findByPessoaIdOrderByHoraEntradaDesc(id);
 
@@ -126,7 +122,9 @@ public class PessoaController {
 				: pessoaRepository.buscarPorTermo(termo);
 
 		List<Registro> registrosAbertos = registroService.buscarRegistrosAbertos();
-		Map<Long, Registro> registrosAbertosMap = registrosAbertos.stream()
+
+		// Alterado de Map<Long, Registro> para Map<UUID, Registro>
+		Map<UUID, Registro> registrosAbertosMap = registrosAbertos.stream()
 				.collect(Collectors.toMap(r -> r.getPessoa().getId(), r -> r));
 
 		model.addAttribute("pessoas", pessoas);

@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -21,7 +22,7 @@ public class RegistroService {
 
 
     @Transactional
-    public void registrarEntrada(Long pessoaId, Usuario operador) {
+    public void registrarEntrada(UUID pessoaId, Usuario operador) {
 
         Pessoa pessoa = pessoaRepository.findById(pessoaId)
                 .orElseThrow(() -> new IllegalArgumentException("Pessoa não encontrada"));
@@ -52,7 +53,7 @@ public class RegistroService {
 
 
     @Transactional
-    public void registrarSaida(Long registroId, Usuario operador) {
+    public void registrarSaida(UUID registroId, Usuario operador) {
 
         Registro registro = registroRepository.findById(registroId)
                 .orElseThrow(() -> new IllegalArgumentException("Registro de entrada não encontrado"));

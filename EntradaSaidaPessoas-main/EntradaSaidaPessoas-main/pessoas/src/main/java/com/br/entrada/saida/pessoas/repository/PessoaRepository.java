@@ -7,8 +7,9 @@ import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
-public interface PessoaRepository extends JpaRepository<Pessoa, Long> {
+public interface PessoaRepository extends JpaRepository<Pessoa, UUID> {
     @Query("""
         SELECT p FROM Pessoa p
         WHERE LOWER(p.nome) LIKE LOWER(CONCAT('%', :termo, '%'))

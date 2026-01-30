@@ -7,14 +7,15 @@ import org.springframework.stereotype.Repository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 
 @Repository
-public interface RegistroRepository extends JpaRepository<Registro, Long> {
+public interface RegistroRepository extends JpaRepository<Registro, UUID> {
 
-    List<Registro> findByPessoaIdOrderByHoraEntradaDesc(Long pessoaId);
+    List<Registro> findByPessoaIdOrderByHoraEntradaDesc(UUID pessoaId);
 
-    boolean existsByPessoaIdAndHoraSaidaIsNull(Long pessoaId);
+    boolean existsByPessoaIdAndHoraSaidaIsNull(UUID pessoaId);
 
     List<Registro> findByHoraSaidaIsNull();
 }

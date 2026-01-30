@@ -10,6 +10,8 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 
+import java.util.UUID;
+
 @Controller
 @RequestMapping("/registros")
 @RequiredArgsConstructor
@@ -19,7 +21,7 @@ public class RegistroController {
     private final UsuarioRepository usuarioRepository;
 
     @PostMapping("/entrada/{pessoaId}")
-    public String registrarEntrada(@PathVariable Long pessoaId, Authentication auth) {
+    public String registrarEntrada(@PathVariable UUID pessoaId, Authentication auth) {
         // Captura o operador que está realizando a entrada
         Usuario operador = usuarioRepository.findByCpf(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
@@ -30,7 +32,7 @@ public class RegistroController {
     }
 
     @PostMapping("/saida/{registroId}")
-    public String registrarSaida(@PathVariable Long registroId, Authentication auth) {
+    public String registrarSaida(@PathVariable UUID registroId, Authentication auth) {
         // Captura o operador que está realizando a saída
         Usuario operador = usuarioRepository.findByCpf(auth.getName())
                 .orElseThrow(() -> new RuntimeException("Operador não encontrado"));
